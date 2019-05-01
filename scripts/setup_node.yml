@@ -1,0 +1,107 @@
+---
+- hosts: all
+  become: true
+  vars:
+    PACKAGES:
+      - vim
+      - htop
+      - tmux
+      - docker-ce
+      - ntp
+      - kubelet
+      - kubeadm
+      - kubectl
+      - kubernetes-cni
+  strategy: free
+
+  tasks:
+    - name: Set Timezone
+      shell: 'timedatectl set-timezone Australia/Melbourne'
+      args:
+        warn: False
+
+    - name: Disable TimeDate Daemon
+      shell: 'timedatectl set-ntp no'
+      args:
+        warn: False
+
+    - name: Update The APT Cache Directly
+      shell: 'apt-get clean && apt-get update'
+      args:
+        warn: False
+
+    - name: Install Dependencies
+      apt:
+        name: apt-transport-https
+        force: yes
+
+    - name: Add The Google Signing Key
+      apt_key:
+        url: 'https://packages.cloud.google.com/apt/doc/apt-key.gpg'
+        state: present
+
+    - name: Add The Docker Signing Key
+      apt_key:
+        url: https://download.docker.com/linux/ubuntu/gpg
+        state: present
+
+    - name: Add K8s Apt Repository
+      apt_repository:
+        repo: 'deb http://apt.kubernetes.io/ kubernetes-xenial main'
+        state: present
+
+    - name: Add Docker Repository
+      apt_repository:
+        repo: 'deb [arch=amd64] https://download.docker.com/linux/ubuntu xenial stable'
+        state: present
+
+    - name: Update The APT Cache Directly
+      shell: 'apt-get update'
+      args:
+        warn: False
+
+    - name: Install Packages
+      apt:
+        name: "{{ PACKAGES }}"
+        state: present
+        force: yes
+
+    - name: Copy Docker Daemon Config
+      copy:
+        src: ../files/daemon.json
+        dest: /etc/docker/daemon.json
+        owner: root
+        group: root
+        mode: 0644
+
+    - name: Ensure Docker System Directory Present
+      file:
+        path: /etc/systemd/system/docker.service.d
+        state: directory
+
+    - name: Restart Docker
+      systemd:
+        name: docker
+        state: restarted
+        daemon_reload: yes
+
+    - name: Disable Active Swap
+      shell: 'swapoff -a'
+
+    - name: Disable Swap In Fstab
+      lineinfile:
+        path: /etc/fstab
+        state: absent
+        regexp: "^.*swap"
+
+    - name: Update Networking For Weave Net
+      sysctl:
+        name: net.bridge.bridge-nf-call-iptables
+        value: 1
+        sysctl_set: yes
+        state: present
+        reload: yes
+
+    - name: Update Kubelet File With Node Ip
+      shell: "echo KUBELET_EXTRA_ARGS=--node-ip=$(ip addr show dev eth1 | grep 'inet ' | awk '{print $2}' | cut -d/ -f 1) > /etc/default/kubelet"
+

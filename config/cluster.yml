@@ -1,0 +1,21 @@
+---
+# Kubernetes Cluster Configuration
+master:
+  ipAddress: "192.168.77.10"
+  cpu: 2
+  memory: 2048
+
+worker1:
+  ipAddress: "192.168.77.11"
+  cpu: 2
+  memory: 2048
+
+worker2:
+  ipAddress: "192.168.77.12"
+  cpu: 2
+  memory: 2048
+
+worker3:
+  ipAddress: "192.168.77.13"
+  cpu: 2
+  memory: 2048

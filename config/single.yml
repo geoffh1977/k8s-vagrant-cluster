@@ -1,0 +1,6 @@
+---
+# Kubernetes Cluster Configuration - Single Node Only
+master:
+  ipAddress: "192.168.77.10"
+  cpu: 2
+  memory: 8192
