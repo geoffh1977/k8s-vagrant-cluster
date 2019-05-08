@@ -3,7 +3,7 @@
 ## Description
 This repository contains all the files needed to setup a local Kubernetes cluster with Vagrant and Virtualbox. Currently, the Vagrantfile is configured to read in a config file to build a Kubernetes cluster of any size that is configured. The repository contains 2 pre-configured types:
 
-* **single** - A single development node. Once configured it will need to be untainted so jobs can run on it as it is a master Kubernetes node. The node will have 2 vCPUs and 8192MB of RAM.
+* **single** - A single development node. Once configured it will need to be untainted so jobs can run on it as it is a master Kubernetes node. The node will have 8 vCPUs and 8192MB of RAM.
 * **cluster** - A Kubernetes cluster contained 4 nodes (1 master and 3 workers). Each node will have 2 vCPUs and 2048MB of RAM each.
 
 More configurations can be easily added by adding additional YAML config files to the config directory.
