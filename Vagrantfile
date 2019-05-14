@@ -3,50 +3,52 @@
 require 'yaml'
 require 'getoptlong'
 
-configFile = 'NONE'
+config_file = 'NONE'
 
 # Configure Custom Command Line Options
 opts = GetoptLong.new(
-  [ '--config', GetoptLong::REQUIRED_ARGUMENT ]
+  ['--config', GetoptLong::REQUIRED_ARGUMENT]
 )
 opts.each do |opt, arg|
   case opt
   when '--config'
-    configFile = arg
+    config_file = arg
   end
 end
 
-if configFile.match('NONE')
-  puts ""
-  puts " --config Is A Required Option. Please Specify The Config File To Use In config Path (e.g. --config=cluster)."
-  puts ""
+if config_file == 'NONE'
+  # rubocop:disable LineLength
+  puts ''
+  puts '  --config Is A Required Custom Option. Please Specify The Config File To Use In config Path (e.g. --config=cluster).'
+  puts ''
   exit(1)
+  # rubocop:enable LineLength
 end
 
 # Load Selected Hosts File
-hosts = YAML.load_file "config/#{configFile}.yml"
+hosts = YAML.load_file "config/#{config_file}.yml"
 
 # Execute Vagrant Configuration
-Vagrant.configure("2") do |config|
+Vagrant.configure('2') do |config|
   # Configure Virtualbox
   config.ssh.insert_key = false
   config.ssh.forward_agent = true
-  check_gest_additions = false
-  funcational_vboxsf = false
-  config.vm.box = "bento/ubuntu-16.04"
+  config.vm.box = 'bento/ubuntu-16.04'
 
   # Configure Nodes
   hosts.each do |name, data|
     config.vm.define name do |machine|
       machine.vm.hostname = name
-      machine.vm.network :private_network, ip: data["ipAddress"]
-      machine.vm.provider "virtualbox" do |v|
-        v.cpus = data["cpu"]
-        v.memory = data["memory"]
-        v.name = 'kube-' + name
+      machine.vm.network :private_network, ip: data['ipAddress']
+      machine.vm.provider 'virtualbox' do |v|
+        v.cpus = data['cpu']
+        v.memory = data['memory']
+        v.name = "k8s-#{config_file}-#{name}"
+        v.check_guest_additions = false
+        v.functional_vboxsf = false
       end
-      machine.vm.provision "ansible_local" do |ansible|
-        ansible.playbook = "scripts/setup_node.yml"
+      machine.vm.provision 'ansible_local' do |ansible|
+        ansible.playbook = 'scripts/setup_node.yml'
       end
     end
   end
